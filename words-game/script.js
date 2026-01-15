@@ -1,5 +1,5 @@
 const MAX_LIVES = 8;
-const LIFE_PRICE = 25;
+const LIFE_PRICE = 5;
 const WORD_LENGTH = 5;
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -43,6 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // indexes.length will be greater than zero if the chosen letter is correct.
     if (indexes.length > 0) {
+      coinsTextEl.style.viewTransitionName = "coins";
       points += 10; // add 10 points for every correct guess.
       indexes.forEach((i) => (guess[i] = letter)); // populate the user's guess array
 
@@ -71,7 +72,13 @@ document.addEventListener("DOMContentLoaded", () => {
     chosenLetters.push(letter); // keep track of chosen letters
 
     // Update the DOM based on the chosen letter, the correct indexes and the result (if we have a result)
-    updateDOM(letter, indexes, result);
+    const transition = document.startViewTransition(() => {
+      updateDOM(letter, indexes, result);
+    });
+
+    transition.finished.then(() => {
+      coinsTextEl.style.viewTransitionName = "none";
+    });
   }
 
   // This function updates the DOM based on the chosen letter (if exists), the correct indexes (if exists) and the final result (if exists)
@@ -110,16 +117,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Loop through all alphabet letters and populate the letter buttons.
     letters.forEach((letter) => {
+      let occurrences = 0;
+
+      answer.forEach((l) => {
+        if (l === letter) {
+          occurrences += 1;
+        }
+      });
+
       const letterWrapper = document.createElement("div");
       letterWrapper.classList.add(`letter`, `letter-${letter}`);
 
+      const buttons = [];
+
       const button = document.createElement("button");
+      button.style.viewTransitionName = `letter-${letter}-0`;
       button.innerText = letter.toUpperCase();
       button.addEventListener("click", () => {
         chooseLetter(letter);
       });
 
-      letterWrapper.append(button);
+      buttons.push(button);
+
+      if (occurrences > 1) {
+        Array(occurrences - 1)
+          .fill(null)
+          .forEach((n, i) => {
+            const buttonClone = button.cloneNode(true);
+            buttonClone.style.viewTransitionName = `letter-${letter}-${i + 1}`;
+            buttonClone.classList.add("clone");
+            buttons.push(buttonClone);
+          });
+      }
+
+      letterWrapper.append(...buttons);
 
       lettersEl.appendChild(letterWrapper);
     });
@@ -162,6 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const heart = document.createElement("img");
         heart.src = "./assets/heart-balloon-svgrepo-com.svg";
         heart.alt = "";
+        heart.style.viewTransitionName = `life-${i}`;
         heartsEl.appendChild(heart);
       });
   }
@@ -171,11 +203,18 @@ document.addEventListener("DOMContentLoaded", () => {
   function buyLife() {
     if (points < LIFE_PRICE) return;
     coinsAudio.play();
+    coinsTextEl.style.viewTransitionName = "coins";
     points -= LIFE_PRICE;
     lives += 1;
 
     // Make sure to update the DOM after updating lives and points
-    updateDOM();
+    const transition = document.startViewTransition(() => {
+      updateDOM();
+    });
+
+    transition.finished.then(() => {
+      coinsTextEl.style.viewTransitionName = "none";
+    });
   }
 
   // Populates the DOM of the coins part, based on the points variable, called every time we update the points variable.
@@ -192,11 +231,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // Populate the guess slots based on the chosen letter and the correct indexes.
   function populateGuess(letter, indexes) {
     const slots = document.querySelector(".guess.main").children;
-    indexes.forEach((index, _index) => {
+    indexes.forEach((pos, index) => {
       const slotItem = document.createElement("div");
       slotItem.innerText = letter.toUpperCase();
       slotItem.classList.add("letter", `letter-${letter}`);
-      slots[index].appendChild(slotItem);
+      slotItem.style.viewTransitionName = `letter-${letter}-${index}`;
+      slots[pos].appendChild(slotItem);
     });
   }
 
@@ -204,14 +244,14 @@ document.addEventListener("DOMContentLoaded", () => {
   async function newGame() {
     try {
       // Get a new word from the API
-      const res = await fetch(
-        `https://random-word-api.herokuapp.com/word?length=${WORD_LENGTH}&number=1`
-      ).then((r) => r.json());
-      console.log(res[0]);
+      // const res = await fetch(
+      //   `https://random-word-api.herokuapp.com/word?length=${WORD_LENGTH}&number=1`
+      // ).then((r) => r.json());
+      // console.log(res[0]);
       // Clear any answer, lives, points, guess and chosenLetters from previous games
-      answer = res[0].split("");
+      answer = "spoon".split("");
       lives = MAX_LIVES;
-      points = 0;
+      points = 100;
       guess = Array(WORD_LENGTH).fill(""); // ["","","","",""]
       chosenLetters = [];
 
