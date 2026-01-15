@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const street = document.querySelector(".street");
   const background = document.querySelector(".background");
   const foreground = document.querySelector(".foreground");
+  const carWrapper = document.querySelector(".car-wrapper");
 
   const characterAnimation = character.animate(
     [
@@ -93,6 +94,24 @@ document.addEventListener("DOMContentLoaded", () => {
         easing: "ease-in-out",
       }
     );
+    const { duration, iterations, easing, direction } =
+      jumpAnimation.effect.getComputedTiming();
+    document.querySelector(".shadow").animate(
+      [
+        {
+          transform: "scale(1)",
+        },
+        {
+          transform: "scale(1.15)",
+        },
+      ],
+      {
+        duration,
+        iterations,
+        easing,
+        direction,
+      }
+    );
     await jumpAnimation.finished;
     characterAnimation.play();
     character.classList.remove("jump");
@@ -127,6 +146,30 @@ document.addEventListener("DOMContentLoaded", () => {
       runSlower();
     }
   }, 5000);
+
+  async function addNewCar() {
+    const car = document.createElement("div");
+    car.classList = "car";
+    const carAnimation = car.animate(
+      [
+        {
+          transform: "translateX(-100vw)",
+        },
+        {
+          transform: "translateX(100vw)",
+        },
+      ],
+      {
+        duration: 2000,
+        easing: "linear",
+      }
+    );
+    carWrapper.appendChild(car);
+    await carAnimation.finished;
+    car.remove();
+  }
+
+  addNewCar();
 
   document.addEventListener("keyup", (event) => {
     switch (event.code) {
