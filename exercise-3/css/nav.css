@@ -4,9 +4,14 @@ header.nav {
   top: 0;
   width: 100%;
   height: 100px;
-  animation: forwards nav;
-  animation-timeline: --hero-view;
-  animation-range: exit-crossing 50% exit-crossing 70%;
+}
+
+@supports (animation-timeline: view()) {
+  header.nav {
+    animation: forwards nav;
+    animation-timeline: --hero-view;
+    animation-range: exit-crossing 50% exit-crossing 70%;
+  }
 }
 
 @keyframes nav {
@@ -50,6 +55,14 @@ header.nav h1 svg.animate .cls-1 {
   stroke: var(--green);
   stroke-dasharray: 1000;
   animation: 3s ease-in-out drawLogo;
+}
+
+@media (prefers-reduced-motion) {
+  header.nav h1 svg.animate .cls-1 {
+    animation: none;
+    fill: rgba(255, 255, 255, 1);
+    stroke: rgba(255, 255, 255, 0);
+  }
 }
 
 @keyframes drawLogo {
